@@ -1,6 +1,18 @@
 import streamlit as st
 import sqlite3
 from twilio.rest import Client
+import datetime
+import requests
+import json
+from typing import List, Dict
+import pandas as pd
+
+# Ensure page config is the first Streamlit command in the script
+st.set_page_config(
+    page_title="Smart Pet Feeder Control",
+    page_icon="🐾",
+    layout="wide"
+)
 
 # ---------------------------
 # Twilio setup (replace with your actual credentials)
@@ -36,22 +48,6 @@ conn.commit()
 # ---------------------------
 # Streamlit UI
 # ---------------------------
-st.title("🐾 Smart Pet Feeder")
-st.subheader("Welcome User")
-
-import streamlit as st
-import datetime
-import requests
-import json
-from typing import List, Dict
-import pandas as pd
-
-# Page configuration
-st.set_page_config(
-    page_title="Smart Pet Feeder Control",
-    page_icon="🐾",
-    layout="wide"
-)
 
 # Custom CSS for better styling
 st.markdown("""
@@ -233,7 +229,8 @@ with tab2:
     with col2:
         st.write("")
         st.write("")
-        if st.button("🍽️ Dispense Now", type="primary", use_container_width=True):
+        # Removed invalid `type="primary"` argument from st.button (Streamlit doesn't accept it)
+        if st.button("🍽️ Dispense Now", use_container_width=True):
             if not st.session_state.feeder_connected:
                 st.error("Please connect to feeder first!")
             else:
@@ -332,7 +329,8 @@ with tab4:
         col1, col2 = st.columns(2)
         
         with col1:
-            filter_date = st.date_input("Filter by Date", value=None)
+            # Do not pass value=None; st.date_input will return today's date by default
+            filter_date = st.date_input("Filter by Date")
         
         with col2:
             filter_type = st.selectbox("Filter by Type", ["All", "Manual", "Scheduled"])
