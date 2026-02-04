@@ -1,4 +1,5 @@
 import streamlit as st
+from supabase import create_client
 import sqlite3
 from twilio.rest import Client
 import datetime
@@ -7,12 +8,61 @@ import json
 from typing import List, Dict
 import pandas as pd
 
+supabase = create_client(
+    st.secrets["SUPABASE_URL"],
+    st.secrets["SUPABASE_ANON_KEY"]
+)
+if "user" not in st.session_state:
+    st.session_state.user = None
+    
 # Ensure page config is the first Streamlit command in the script
 st.set_page_config(
     page_title="Smart Pet Feeder Control",
     page_icon="🐾",
     layout="wide"
 )
+
+st.title("Smart Pet Feeder")
+
+if st.session_state.user is None:
+    st.subheader("Login / Sign up")
+
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Sign up"):
+            try:
+                supabase.auth.sign_up({
+                    "email": email,
+                    "password": password
+                })
+                st.info("Check your email to confirm your account.")
+            except Exception as e:
+                st.error(str(e))
+
+    with col2:
+        if st.button("Log in"):
+            try:
+                res = supabase.auth.sign_in_with_password({
+                    "email": email,
+                    "password": password
+                })
+                st.session_state.user = res.user
+                st.success("Logged in!")
+                st.rerun()
+            except Exception as e:
+                st.error("Login failed. Did you confirm your email?")
+else:
+    st.success(f"Logged in as {st.session_state.user.email}")
+
+    if st.button("Log out"):
+        supabase.auth.sign_out()
+        st.session_state.user = None
+        st.rerun()
+
 
 # ---------------------------
 # Twilio setup (replace with your actual credentials)
@@ -363,3 +413,4 @@ with tab4:
 # Footer
 st.divider()
 st.caption(f"Smart Pet Feeder Control Panel | Last updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
