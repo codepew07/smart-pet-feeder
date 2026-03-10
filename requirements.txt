@@ -2,3 +2,5 @@ streamlit
 twilio
 pandas
 supabase
+flask
+requests
